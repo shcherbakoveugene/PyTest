@@ -1,5 +1,2 @@
-from enum import Enum
-
-
-class ErrorMessages(Enum):
+class ErrorMessages:
     LOGIN_ERROR = 'Invalid username/password supplied'

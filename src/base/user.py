@@ -3,6 +3,7 @@ import requests
 import random
 import string
 from loguru import logger
+from src.const.status_codes import Statuses as status
 
 
 def random_user_name():
@@ -11,6 +12,7 @@ def random_user_name():
 
 def get_existing_user_url(user_name):
     url = get_config('Links', 'existing_user') + str(user_name)
+
     return url
 
 
@@ -24,6 +26,10 @@ def create_user(user_name, first_name, last_name):
               }
 
     response = requests.post(url=get_config('Links', 'create_user'), json=params)
+
+    if response.status_code == status.OK:
+        logger.debug(f"User {user_name} successfully created")
+
     return response
 
 
@@ -33,11 +39,12 @@ def get_user(user_name):
 
 
 def is_user_exist(user_name):
-    return get_user(user_name).status_code == 200
+    return get_user(user_name).status_code == status.OK
 
 
-def get_user_info(user_name):
-    user_info = dict(get_user(user_name).json())
+def get_user_info(user):
+    user_info = dict(user.json())
+
     return user_info
 
 
@@ -59,7 +66,13 @@ def update_user(user_name):
 
 def delete_user(user_name):
     logger.debug("Deleting user")
-    return requests.delete(url=get_existing_user_url(user_name))
+
+    if requests.delete(url=get_existing_user_url(user_name)).status_code == 200:
+        logger.debug(f"User {user_name} successfully deleted")
+        return status.OK
+    else:
+        logger.debug(f"User {user_name} is not deleted")
+        return status.NOT_FOUND
 
 
 def logout_user():
